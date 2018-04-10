@@ -29,9 +29,22 @@ def jwt_get_secret_key(payload=None):
     return api_settings.JWT_SECRET_KEY
 
 
-def jwt_payload_handler(user):
+def jwt_payload_handler(user=None, extra_data=None):
+    extra_data = extra_data or {}
     username_field = get_username_field()
-    username = get_username(user)
+
+    email = extra_data.pop('email', '')
+    if user is None:
+        user_id = extra_data.pop('user_id', '')
+        username = extra_data.pop('username', '')
+    else:
+        user_id = user.id
+        username = get_username(user)
+        if hasattr(user, 'email'):
+            email = user.email
+
+    if isinstance(user_id, uuid.UUID):
+        user_id = str(user.pk)
 
     warnings.warn(
         'The following fields will be removed in the future: '
@@ -39,15 +52,14 @@ def jwt_payload_handler(user):
         DeprecationWarning
     )
 
-    payload = {
-        'user_id': user.pk,
+    payload = extra_data.copy()
+    payload.update({
+        'user_id': user_id,
         'username': username,
         'exp': datetime.utcnow() + api_settings.JWT_EXPIRATION_DELTA
-    }
-    if hasattr(user, 'email'):
-        payload['email'] = user.email
-    if isinstance(user.pk, uuid.UUID):
-        payload['user_id'] = str(user.pk)
+    })
+    if email:
+        payload['email'] = email
 
     payload[username_field] = username
 

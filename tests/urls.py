@@ -1,7 +1,11 @@
+import json
+
 from django.conf.urls import url
 from django.http import HttpResponse
 from rest_framework import permissions
+from rest_framework.response import Response
 from rest_framework.views import APIView
+
 try:
     from rest_framework_oauth.authentication import OAuth2Authentication
 except ImportError:
@@ -24,6 +28,18 @@ class MockView(APIView):
         return HttpResponse('mockview-post')
 
 
+class MockSessionView(MockView):
+    permission_classes = (permissions.AllowAny,)
+    session_key = 'mock_id'
+
+    def get(self, request):
+        return Response({self.session_key: request.jwt_session.get(self.session_key)})
+
+    def post(self, request):
+        request.jwt_session[self.session_key] = request.data.get(self.session_key, 123)
+        return Response({self.session_key: request.jwt_session.get(self.session_key)})
+
+
 urlpatterns = [
     url(r'^auth-token/$', views.obtain_jwt_token),
     url(r'^auth-token-refresh/$', views.refresh_jwt_token),
@@ -37,4 +53,7 @@ urlpatterns = [
     url(r'^oauth2-jwt/$', MockView.as_view(
         authentication_classes=[
             OAuth2Authentication, JSONWebTokenAuthentication])),
+
+    url(r'^jwt/session/$', MockSessionView.as_view(
+        authentication_classes=[JSONWebTokenAuthentication])),
 ]

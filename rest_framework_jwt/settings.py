@@ -3,33 +3,32 @@ import datetime
 from django.conf import settings
 from rest_framework.settings import APISettings
 
-
 USER_SETTINGS = getattr(settings, 'JWT_AUTH', None)
 
 DEFAULTS = {
     'JWT_ENCODE_HANDLER':
-    'rest_framework_jwt.utils.jwt_encode_handler',
+        'rest_framework_jwt.utils.jwt_encode_handler',
 
     'JWT_DECODE_HANDLER':
-    'rest_framework_jwt.utils.jwt_decode_handler',
+        'rest_framework_jwt.utils.jwt_decode_handler',
 
     'JWT_PAYLOAD_HANDLER':
-    'rest_framework_jwt.utils.jwt_payload_handler',
+        'rest_framework_jwt.utils.jwt_payload_handler',
 
     'JWT_PAYLOAD_GET_USER_ID_HANDLER':
-    'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',
+        'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',
 
     'JWT_PRIVATE_KEY':
-    None,
+        None,
 
     'JWT_PUBLIC_KEY':
-    None,
+        None,
 
     'JWT_PAYLOAD_GET_USERNAME_HANDLER':
-    'rest_framework_jwt.utils.jwt_get_username_from_payload_handler',
+        'rest_framework_jwt.utils.jwt_get_username_from_payload_handler',
 
     'JWT_RESPONSE_PAYLOAD_HANDLER':
-    'rest_framework_jwt.utils.jwt_response_payload_handler',
+        'rest_framework_jwt.utils.jwt_response_payload_handler',
 
     'JWT_SECRET_KEY': settings.SECRET_KEY,
     'JWT_GET_USER_SECRET_KEY': None,
@@ -46,6 +45,11 @@ DEFAULTS = {
 
     'JWT_AUTH_HEADER_PREFIX': 'JWT',
     'JWT_AUTH_COOKIE': None,
+
+    'JWT_SESSION': False,
+    'JWT_ALLOW_ANONYMOUS': False,
+    'JWT_SESSION_ENGINE': 'rest_framework_jwt.session.session',
+    'JWT_SESSION_RESPONSE_TOKEN_HEADER_NAME': 'Access-Token'
 }
 
 # List of settings that may be in string import notation.

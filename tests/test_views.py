@@ -128,7 +128,8 @@ class ObtainJSONWebTokenTests(BaseTestCase):
         client = APIClient(enforce_csrf_checks=True)
         response = client.post(
             '/auth-token/', self.data,
-            HTTP_AUTHORIZATION=auth, format='json')
+            HTTP_AUTHORIZATION=auth,
+            format='json')
 
         decoded_payload = utils.jwt_decode_handler(response.data['token'])
 

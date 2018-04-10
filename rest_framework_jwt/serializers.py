@@ -11,7 +11,6 @@ from .compat import Serializer
 from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.compat import get_username_field, PasswordField
 
-
 User = get_user_model()
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -27,6 +26,7 @@ class JSONWebTokenSerializer(Serializer):
 
     Returns a JSON Web Token that can be used to authenticate later calls.
     """
+
     def __init__(self, *args, **kwargs):
         """
         Dynamically add the USERNAME_FIELD to self.fields.
@@ -54,7 +54,12 @@ class JSONWebTokenSerializer(Serializer):
                     msg = _('User account is disabled.')
                     raise serializers.ValidationError(msg)
 
-                payload = jwt_payload_handler(user)
+                extra_data = None
+                if api_settings.JWT_SESSION:
+                    session = self.context['request'].jwt_session
+                    extra_data = dict(session)
+
+                payload = jwt_payload_handler(user, extra_data)
 
                 return {
                     'token': jwt_encode_handler(payload),
@@ -84,10 +89,10 @@ class VerificationBaseSerializer(Serializer):
         # may want to refactor)
         try:
             payload = jwt_decode_handler(token)
-        except jwt.ExpiredSignature:
+        except jwt.ExpiredSignature as e:
             msg = _('Signature has expired.')
             raise serializers.ValidationError(msg)
-        except jwt.DecodeError:
+        except jwt.DecodeError as e:
             msg = _('Error decoding signature.')
             raise serializers.ValidationError(msg)
 
@@ -97,6 +102,8 @@ class VerificationBaseSerializer(Serializer):
         username = jwt_get_username_from_payload(payload)
 
         if not username:
+            if api_settings.JWT_SESSION and api_settings.JWT_ALLOW_ANONYMOUS:
+                return None
             msg = _('Invalid payload.')
             raise serializers.ValidationError(msg)
 
@@ -161,8 +168,10 @@ class RefreshJSONWebTokenSerializer(VerificationBaseSerializer):
         else:
             msg = _('orig_iat field is required.')
             raise serializers.ValidationError(msg)
-
-        new_payload = jwt_payload_handler(user)
+        extra_data = None
+        if api_settings.JWT_SESSION:
+            extra_data = jwt_decode_handler(token)
+        new_payload = jwt_payload_handler(user, extra_data=extra_data)
         new_payload['orig_iat'] = orig_iat
 
         return {

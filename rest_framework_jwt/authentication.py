@@ -52,6 +52,8 @@ class BaseJSONWebTokenAuthentication(BaseAuthentication):
         username = jwt_get_username_from_payload(payload)
 
         if not username:
+            if api_settings.JWT_SESSION and api_settings.JWT_ALLOW_ANONYMOUS:
+                return None
             msg = _('Invalid payload.')
             raise exceptions.AuthenticationFailed(msg)
 
