@@ -1,6 +1,7 @@
 import jwt
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.utils.encoding import smart_text
 from django.utils.translation import ugettext as _
 from rest_framework import exceptions
@@ -53,7 +54,7 @@ class BaseJSONWebTokenAuthentication(BaseAuthentication):
 
         if not username:
             if api_settings.JWT_SESSION and api_settings.JWT_ALLOW_ANONYMOUS:
-                return None
+                return AnonymousUser()
             msg = _('Invalid payload.')
             raise exceptions.AuthenticationFailed(msg)
 
